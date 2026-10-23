@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-// MacNabız uygulama ikonu: yuvarlatılmış kare + turuncu→pembe degrade + beyaz nabız (ECG) çizgisi.
+// VitalMac uygulama ikonu: yuvarlatılmış kare + turuncu→pembe degrade + beyaz nabız (ECG) çizgisi.
 
 func drawIcon(size: Int) -> Data? {
     let s = CGFloat(size)

@@ -2,18 +2,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "MacNabiz",
+    name: "VitalMac",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "MacNabiz", targets: ["MacNabiz"])
+        .executable(name: "VitalMac", targets: ["VitalMac"])
     ],
     targets: [
         // Sıcaklık (IOHID) ve fan (SMC) için C ara katmanı.
         .target(name: "CSensors"),
         .executableTarget(
-            name: "MacNabiz",
+            name: "VitalMac",
             dependencies: ["CSensors"],
-            path: "Sources/MacNabiz",
+            path: "Sources/VitalMac",
             linkerSettings: [
                 .linkedFramework("IOKit"),
                 .linkedFramework("CoreFoundation")

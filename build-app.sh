@@ -1,11 +1,11 @@
 #!/bin/bash
-# MacNabız — .app paketleyici ve ad-hoc imzalayıcı.
-# Kullanım: ./build-app.sh   (sonuç: ./MacNabız.app)
+# VitalMac — .app paketleyici ve ad-hoc imzalayıcı.
+# Kullanım: ./build-app.sh   (sonuç: ./VitalMac.app)
 set -euo pipefail
 
-APP_NAME="MacNabız"
-EXEC_NAME="MacNabiz"
-BUNDLE_ID="com.hattat.macnabiz"
+APP_NAME="VitalMac"
+EXEC_NAME="VitalMac"
+BUNDLE_ID="com.hattat.vitalmac"
 VERSION="1.0"
 BUILD="1"
 
@@ -36,6 +36,13 @@ mkdir -p "$MACOS" "$RESOURCES"
 cp "$BIN_PATH" "$MACOS/$EXEC_NAME"
 [[ -f "$ROOT/AppIcon.icns" ]] && cp "$ROOT/AppIcon.icns" "$RESOURCES/AppIcon.icns"
 
+# Diller: macOS dili İngilizceyse İngilizce, Türkçeyse Türkçe; diğer dillerde İngilizce.
+echo "▶︎ Dil dosyaları üretiliyor…"
+python3 "$ROOT/Localization/build_strings.py"
+for lproj in "$ROOT"/Localization/*.lproj; do
+  cp -R "$lproj" "$RESOURCES/"
+done
+
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -43,6 +50,9 @@ cat > "$CONTENTS/Info.plist" <<PLIST
 <dict>
     <key>CFBundleName</key>            <string>$EXEC_NAME</string>
     <key>CFBundleDisplayName</key>     <string>$APP_NAME</string>
+    <key>CFBundleDevelopmentRegion</key> <string>en</string>
+    <key>CFBundleLocalizations</key>   <array><string>en</string><string>tr</string></array>
+    <key>CFBundleAllowMixedLocalizations</key> <false/>
     <key>CFBundleIdentifier</key>      <string>$BUNDLE_ID</string>
     <key>CFBundleExecutable</key>      <string>$EXEC_NAME</string>
     <key>CFBundleIconFile</key>        <string>AppIcon</string>

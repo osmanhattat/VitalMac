@@ -2,9 +2,9 @@
 
 <p><b>English</b> · <a href="README.tr.md">Türkçe</a></p>
 
-<img src="docs/icon.png" width="112" alt="MacNabız icon">
+<img src="docs/icon.png" width="112" alt="VitalMac icon">
 
-# MacNabız
+# VitalMac
 
 **A local, lightweight system monitor that keeps your Mac's pulse.**<br>
 Live CPU, GPU, memory, disk, network, battery and temperature, plus a disk scanner that finds what's eating your space in seconds and cleans it safely.
@@ -20,13 +20,13 @@ Live CPU, GPU, memory, disk, network, battery and temperature, plus a disk scann
 </div>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
-  <img alt="MacNabız dashboard: system pulse, live ECG trace and CPU, GPU, memory and disk channels" src="docs/screenshot-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-en-dark.png">
+  <img alt="VitalMac dashboard: system pulse, live ECG trace and CPU, GPU, memory and disk channels" src="docs/screenshot-en-light.png">
 </picture>
 
-> *Nabız* is Turkish for "pulse". The interface is currently in Turkish; English localization is planned.
+> The name comes from *vital signs* — the readings a bedside monitor shows (*vital bulgular* in Turkish). The interface is available in **English and Turkish** and follows your macOS language.
 
-## Why MacNabız
+## Why VitalMac
 
 - **Status at a glance.** The ECG trace at the top of the dashboard speeds up with CPU load; below it, four channels (CPU, GPU, memory, disk) show their last minute of history.
 - **Disk scans in seconds.** A 290 GB home folder with 2 million files is scanned in **24 seconds** (`du` on the same folder: 104 s). Folder sizes, largest files and duplicate candidates all come from a single pass.
@@ -52,7 +52,7 @@ Live CPU, GPU, memory, disk, network, battery and temperature, plus a disk scann
 
 ## Safety principles
 
-MacNabız can delete files, so it follows these rules:
+VitalMac can delete files, so it follows these rules:
 
 1. **Show first, then ask.** Everything to be removed is listed with its name, path and size; nothing happens without confirmation.
 2. **Trash by default.** Disk Analysis and Reclaim Space never delete permanently — items go to the Trash and can be restored.
@@ -65,11 +65,11 @@ MacNabız can delete files, so it follows these rules:
 Requirements: macOS 14 or later, Xcode command line tools (Swift 5.9+).
 
 ```bash
-git clone https://github.com/osmanhattat/MacNabiz.git
-cd MacNabiz
-./build-app.sh                       # release build + ad-hoc signed MacNabız.app
-cp -R "MacNabız.app" /Applications/
-open "/Applications/MacNabız.app"
+git clone https://github.com/osmanhattat/VitalMac.git
+cd VitalMac
+./build-app.sh                       # release build + ad-hoc signed VitalMac.app
+cp -R "VitalMac.app" /Applications/
+open "/Applications/VitalMac.app"
 ```
 
 For development: `swift build && swift run`
@@ -101,7 +101,7 @@ For development: `swift build && swift run`
 ```
 Sources/
 ├── CSensors/           C layer for temperature (IOHID) and fans (SMC)
-└── MacNabiz/
+└── VitalMac/
     ├── App/            Entry point, sidebar, menu bar
     ├── Monitors/       CPU, memory, disk, GPU, network, energy, sensors → SystemMonitor
     ├── Services/       DiskScanner (fts), DiskScanStore, SpaceSaver, CacheCleaner,

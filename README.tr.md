@@ -2,11 +2,11 @@
 
 <p><a href="README.md">English</a> · <b>Türkçe</b></p>
 
-<img src="docs/icon.png" width="112" alt="MacNabız simgesi">
+<img src="docs/icon.png" width="112" alt="VitalMac simgesi">
 
-# MacNabız
+# VitalMac
 
-**Mac'inin nabzını tutan, yerel ve hafif sistem monitörü.**<br>
+**Mac'inin vital bulgularını izleyen, yerel ve hafif sistem monitörü.**<br>
 CPU, GPU, bellek, disk, ağ, pil ve sıcaklığı canlı izler; diskte neyin yer kapladığını saniyeler içinde bulur ve güvenle temizler.
 
 <p>
@@ -20,11 +20,13 @@ CPU, GPU, bellek, disk, ağ, pil ve sıcaklığı canlı izler; diskte neyin yer
 </div>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
-  <img alt="MacNabız paneli: sistem nabzı, canlı EKG çizgisi ve CPU, GPU, bellek, disk kanalları" src="docs/screenshot-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-tr-dark.png">
+  <img alt="VitalMac paneli: sistem nabzı, canlı EKG çizgisi ve CPU, GPU, bellek, disk kanalları" src="docs/screenshot-tr-light.png">
 </picture>
 
-## Neden MacNabız
+> Ad, hasta başı monitörlerinin gösterdiği *vital bulgulardan* (İngilizce *vital signs*) gelir; eski adı MacNabız. Arayüz **Türkçe ve İngilizce**dir, macOS diline göre açılır.
+
+## Neden VitalMac
 
 - **Bir bakışta durum.** Panelin tepesindeki EKG çizgisi CPU yüküne göre hızlanır; altındaki dört kanal (işlemci, GPU, bellek, disk) son bir dakikanın geçmişiyle birlikte görünür.
 - **Disk taraması saniyeler sürer.** 290 GB / 2 milyon dosyalık bir ev klasörü **24 saniyede** taranır (aynı klasörde `du`: 104 sn). Klasörler, en büyük dosyalar ve yinelenen adayları tek geçişte çıkar.
@@ -50,7 +52,7 @@ CPU, GPU, bellek, disk, ağ, pil ve sıcaklığı canlı izler; diskte neyin yer
 
 ## Güvenlik ilkeleri
 
-MacNabız dosya silebilen bir araç; bu yüzden şu kurallara göre çalışır:
+VitalMac dosya silebilen bir araç; bu yüzden şu kurallara göre çalışır:
 
 1. **Önce göster, sonra sor.** Silinecek her şey adı, yolu ve boyutuyla listelenir; işlem onay olmadan başlamaz.
 2. **Varsayılan: Çöp Kutusu.** Disk Analizi ve Alan Kazan öğeleri kalıcı silmez, çöpe taşır; geri alınabilir.
@@ -63,11 +65,11 @@ MacNabız dosya silebilen bir araç; bu yüzden şu kurallara göre çalışır:
 Gereken: macOS 14 veya üstü, Xcode komut satırı araçları (Swift 5.9+).
 
 ```bash
-git clone https://github.com/osmanhattat/MacNabiz.git
-cd MacNabiz
-./build-app.sh                       # release derlemesi + ad-hoc imzalı MacNabız.app
-cp -R "MacNabız.app" /Applications/
-open "/Applications/MacNabız.app"
+git clone https://github.com/osmanhattat/VitalMac.git
+cd VitalMac
+./build-app.sh                       # release derlemesi + ad-hoc imzalı VitalMac.app
+cp -R "VitalMac.app" /Applications/
+open "/Applications/VitalMac.app"
 ```
 
 Geliştirme için: `swift build && swift run`
@@ -99,7 +101,7 @@ Geliştirme için: `swift build && swift run`
 ```
 Sources/
 ├── CSensors/           Sıcaklık (IOHID) ve fan (SMC) için C katmanı
-└── MacNabiz/
+└── VitalMac/
     ├── App/            Giriş noktası, kenar çubuğu, menü çubuğu
     ├── Monitors/       CPU, bellek, disk, GPU, ağ, enerji, sensör → SystemMonitor
     ├── Services/       DiskScanner (fts), DiskScanStore, SpaceSaver, CacheCleaner,
