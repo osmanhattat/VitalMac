@@ -86,8 +86,8 @@ struct RootView: View {
                 AnyView((item == .dashboard ? AnyView(DashboardView(scrolls: false)) : AnyView(page(item)))
                     .environmentObject(monitor).environmentObject(notify))
             }, sidebar: AnyView(
-                VStack(spacing: 0) { SidebarBrand(); Spacer(); MiniStatusBar() }
-                    .frame(width: 220, height: 400).background(Theme.canvas).environmentObject(monitor)
+                SnapshotSidebar().frame(width: 230, height: 1500)
+                    .environmentObject(monitor)
             ))
         }
         #endif

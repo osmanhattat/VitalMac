@@ -32,7 +32,7 @@ enum SnapshotRunner {
                 .frame(width: 1020, height: 1500, alignment: .top)
                 .background(Theme.canvas)
                 .environment(\.colorScheme, appearance?.name == .aqua ? .light : .dark))
-            renderer.scale = 1
+            renderer.scale = 2
             if let image = renderer.nsImage, let tiff = image.tiffRepresentation,
                let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
                 try? png.write(to: dir.appendingPathComponent(String(format: "r%02d.png", index)))
@@ -48,11 +48,44 @@ enum SnapshotRunner {
             }
         }
         let side = ImageRenderer(content: sidebar.environment(\.colorScheme, appearance?.name == .aqua ? .light : .dark))
+        side.scale = 2
         if let tiff = side.nsImage?.tiffRepresentation,
            let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
             try? png.write(to: dir.appendingPathComponent("sidebar.png"))
         }
         NSApp.terminate(nil)
+    }
+}
+/// Görüntü alma için kenar çubuğunun SwiftUI ile çizilmiş eşi (gerçek kenar çubuğu AppKit listesidir
+/// ve ekran dışında çizilemez). Aynı grupları, ikonları ve bileşenleri kullanır.
+struct SnapshotSidebar: View {
+    @EnvironmentObject var monitor: SystemMonitor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SidebarBrand().padding(.top, 10)
+            ForEach(SidebarItem.groups, id: \.title) { group in
+                Eyebrow(group.title, size: 9.5)
+                    .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 6)
+                ForEach(group.items) { item in
+                    HStack(spacing: 9) {
+                        Image(systemName: item.icon).frame(width: 18)
+                            .foregroundStyle(item == .dashboard ? Color.white : Theme.pulse)
+                        Text(item.rawValue)
+                            .foregroundStyle(item == .dashboard ? Color.white : Theme.ink)
+                        Spacer()
+                    }
+                    .font(.system(size: 13))
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(item == .dashboard ? Theme.pulse : .clear,
+                                in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .padding(.horizontal, 8)
+                }
+            }
+            Spacer()
+            MiniStatusBar()
+        }
+        .background(Theme.inset)
     }
 }
 #endif

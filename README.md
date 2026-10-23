@@ -1,70 +1,111 @@
-# MacNabız ⚡️
+<div align="center">
 
-macOS için native (SwiftUI) sistem izleme ve hızlandırma uygulaması.
-Disk/RAM/CPU kullanımını gösterir, gereksiz arka plan işlerini kapatır, önbellek temizler.
+<img src="docs/icon.png" width="112" alt="MacNabız simgesi">
 
-> Apple Silicon · macOS 14+ · Swift 6 / SwiftUI · Electron'a göre çok daha hafif
+# MacNabız
+
+**Mac'inin nabzını tutan, yerel ve hafif sistem monitörü.**<br>
+CPU, GPU, bellek, disk, ağ, pil ve sıcaklığı canlı izler; diskte neyin yer kapladığını saniyeler içinde bulur ve güvenle temizler.
+
+<p>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-0F172A?style=flat-square&logo=apple&logoColor=white">
+  <img alt="Apple Silicon" src="https://img.shields.io/badge/Apple%20Silicon-native-0F172A?style=flat-square">
+  <img alt="Swift" src="https://img.shields.io/badge/Swift-SwiftUI-F05138?style=flat-square&logo=swift&logoColor=white">
+  <img alt="Ağ bağlantısı yok" src="https://img.shields.io/badge/a%C4%9F%20ba%C4%9Flant%C4%B1s%C4%B1-yok-16A34A?style=flat-square">
+  <img alt="Lisans MIT" src="https://img.shields.io/badge/lisans-MIT-2563EB?style=flat-square">
+</p>
+
+</div>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img alt="MacNabız paneli: sistem nabzı, canlı EKG çizgisi ve CPU, GPU, bellek, disk kanalları" src="docs/screenshot-light.png">
+</picture>
+
+## Neden MacNabız
+
+- **Bir bakışta durum.** Panelin tepesindeki EKG çizgisi CPU yüküne göre hızlanır; altındaki dört kanal (işlemci, GPU, bellek, disk) son bir dakikanın geçmişiyle birlikte görünür.
+- **Disk taraması saniyeler sürer.** 290 GB / 2 milyon dosyalık bir ev klasörü **24 saniyede** taranır (aynı klasörde `du`: 104 sn). Klasörler, en büyük dosyalar ve yinelenen adayları tek geçişte çıkar.
+- **Neyin silinebileceğini söyler.** "Alan Kazan" sayfası `node_modules`, `bin/obj`, paket önbellekleri, eski iOS simülatör runtime'ları gibi yeniden üretilebilir alanları **proje adıyla** listeler ve her kalemi "Güvenli" ya da "Kontrol et" diye etiketler.
+- **Hiçbir şey dışarı çıkmaz.** Uygulama ağa bağlanmaz, telemetri göndermez; tüm ölçümler yerel sistem API'lerinden okunur.
 
 ## Özellikler
 
-| Bölüm | Ne yapar |
-|-------|----------|
-| **Panel** | **Sağlık skoru** + Canlı CPU / GPU / Bellek / Disk halkaları, geçmiş grafikleri, **ağ hızı**, **pil/enerji**, **CPU sıcaklığı & fan RPM**, en çok kaynak tüketen işlemler |
-| **Donanım** | Çip (örn. Apple M5 Pro), CPU çekirdek yapısı (P+E), **GPU adı/çekirdek sayısı/bellek (GB)**, toplam RAM, model, macOS — canlı kullanım çubukları + Bluetooth cihaz pilleri |
-| **İşlemler** | Tüm işlemler tablosu — CPU/Bellek/PID'e göre sıralanır, arama, kapat / zorla kapat |
-| **Disk Analizi** | Paralel `fts` tarayıcı (ev klasörü ~2M dosya ≈ 25 sn), canlı ilerleme, sonuç önbelleği (sayfa değişince yeniden taramaz) · treemap + drill-down · **en büyük dosyalar** ve **yinelenenler** aynı taramadan · gizli klasörler dahil · sağ tık: Finder / yolu kopyala / çöpe taşı |
-| **Ağ** | Uygulama-bazlı canlı ağ kullanımı (↓↑), `nettop` ile, sıralanabilir tablo |
-| **Hızlandır** | Tek tuşla: inaktif belleği boşalt (`purge`) + seçili arka plan uygulamalarını kapat |
-| **Temizlik** | Önbellek / log / Xcode DerivedData / çöp kutusu — **silinecek her öğenin dökümü** (ad+boyut) + güvenlik notu, onaylı silme |
-| **Alan Kazan** | Geri kazanılabilir alanlar: proje derleme çıktıları (node_modules, bin/obj, build, Pods, venv…), NuGet/npm/Gradle/pnpm önbellekleri, eski iOS simülatör runtime'ları, Xcode DerivedData, Android SDK, aerial duvar kağıtları, eski indirmeler — güvenlik etiketiyle, çöpe taşıyarak |
-| **Uygulamalar** | Uygulama kaldırıcı — uygulama + artık dosyaları bulup çöpe taşır |
-| **Başlangıç** | Girişte aç ayarı + kullanıcı LaunchAgents yönetimi |
-| **Ayarlar** | Eşik bildirimleri (CPU/RAM/disk/sıcaklık) + haftalık otomatik temizlik |
-| **Menü çubuğu** | Canlı mini CPU grafiği + CPU/GPU/RAM/Disk/ağ/pil/sıcaklık özeti + hızlı eylemler |
+| | Bölüm | Ne yapar |
+|---|---|---|
+| **İzleme** | Panel | Sağlık skoru, CPU'ya bağlı canlı nabız çizgisi, CPU / GPU / bellek / disk kanalları, ağ hızı, pil, sıcaklık ve fan, en çok kaynak kullanan işlemler |
+| | Donanım | Çip, P+E çekirdek yapısı, GPU çekirdek ve bellek bilgisi, model, macOS sürümü, Bluetooth cihaz pilleri |
+| | İşlemler | Aranabilir, sıralanabilir işlem tablosu; kapat / zorla kapat |
+| | Ağ | Uygulama bazında canlı indirme / yükleme hızı |
+| **Depolama** | Disk Analizi | Paralel tarayıcı, canlı ilerleme, treemap haritası ve klasöre inme, en büyük dosyalar, yinelenen dosyalar; sağ tıkla Finder'da göster / yolu kopyala / çöpe taşı |
+| | Alan Kazan | Proje derleme çıktıları, geliştirici önbellekleri (NuGet, npm, pnpm, Gradle, CocoaPods…), simülatör runtime'ları, Xcode DerivedData, Android SDK, aerial duvar kağıtları, eski indirmeler |
+| | Temizlik | Önbellek, log, DerivedData ve çöp kutusu; silinecek her öğenin dökümüyle |
+| **Bakım** | Hızlandır | İnaktif belleği boşaltma ve seçili arka plan uygulamalarını kapatma |
+| | Uygulamalar | Uygulamayı artık dosyalarıyla birlikte çöpe taşıyan kaldırıcı |
+| | Başlangıç | Girişte aç ayarı ve kullanıcı LaunchAgent'ları |
+| **Her yerde** | Menü çubuğu | Canlı mini grafik, özet değerler ve hızlı eylemler |
+| | Ayarlar | Eşik bildirimleri (CPU, RAM, disk, sıcaklık) ve haftalık otomatik bakım |
 
-## Derleme & Çalıştırma
+## Güvenlik ilkeleri
+
+MacNabız dosya silebilen bir araç; bu yüzden şu kurallara göre çalışır:
+
+1. **Önce göster, sonra sor.** Silinecek her şey adı, yolu ve boyutuyla listelenir; işlem onay olmadan başlamaz.
+2. **Varsayılan: Çöp Kutusu.** Disk Analizi ve Alan Kazan öğeleri kalıcı silmez, çöpe taşır; geri alınabilir.
+3. **Korunan alanlar.** Ev klasörü dışı, `~/Desktop` gibi üst klasörler, Anahtar Zinciri, Mail, Mesajlar, iCloud gibi hassas `~/Library` alanları çöpe taşınamaz; sembolik bağ ile dışarı çıkılamaz.
+4. **Aktif projeye dokunmaz.** Son 60 günde değişmiş projelerin derleme çıktıları varsayılan olarak seçilmez.
+5. **Kabuk yok.** Harici komutlar (`simctl`, `osascript`) argüman dizisiyle çalıştırılır; yönetici gerektiren işlemler macOS şifre penceresiyle istenir.
+
+## Kurulum
+
+Gereken: macOS 14 veya üstü, Xcode komut satırı araçları (Swift 5.9+).
 
 ```bash
-# Geliştirme derlemesi
-swift build && swift run
-
-# .app paketi üret (ad-hoc imzalı)
-./build-app.sh
-open "MacNabız.app"
+git clone https://github.com/osmanhattat/MacNabiz.git
+cd MacNabiz
+./build-app.sh                       # release derlemesi + ad-hoc imzalı MacNabız.app
+cp -R "MacNabız.app" /Applications/
+open "/Applications/MacNabız.app"
 ```
 
-## İzinler
+Geliştirme için: `swift build && swift run`
 
-- **Tüm Diske Erişim** — sistem genelini taramak için: *Sistem Ayarları → Gizlilik ve Güvenlik → Tüm Diske Erişim* → MacNabız ekle.
-- **Yönetici şifresi** — "Hızlandır"da bellek temizleme (`purge`) yönetici izni ister; macOS şifre penceresi açılır.
+> Uygulama ad-hoc imzalıdır. İlk açılışta macOS uyarı verirse Finder'da sağ tık → **Aç** ile bir kez onaylayın.
 
-## Teknik Mimari
+### İzinler
+
+| İzin | Neden | Nereden |
+|---|---|---|
+| Tüm Diske Erişim | Disk Analizi'nin korunan klasörleri de ölçebilmesi için | Sistem Ayarları → Gizlilik ve Güvenlik → Tüm Diske Erişim |
+| Yönetici şifresi | Yalnızca bellek boşaltma (`purge`) sırasında | İşlem anında macOS sorar |
+| Otomasyon (Finder) | Yalnızca "Çöpü Boşalt" düğmesi için | İlk kullanımda macOS sorar |
+
+## Nasıl ölçüyor
+
+| Ölçüm | Kaynak |
+|---|---|
+| CPU | `host_statistics(HOST_CPU_LOAD_INFO)` tick farkı |
+| Bellek | `host_statistics64(HOST_VM_INFO64)` — aktif + kablolu + sıkıştırılmış |
+| GPU | IORegistry `IOAccelerator → PerformanceStatistics` (sudo gerekmez) |
+| Ağ | `getifaddrs` (toplam), `nettop` (uygulama bazında) |
+| Pil | `IOPowerSources` + `AppleSmartBattery` |
+| Sıcaklık / fan | `IOHIDEventSystemClient` termal sensörleri, `AppleSMC` |
+| Disk taraması | `fts(3)` + `lstat`, ilk üç düzeyde paralel görevler, sabit bağlantılar tek sayılır |
+
+## Mimari
 
 ```
-Sources/MacNabiz/
-Sources/CSensors/    Sıcaklık (IOHID) + fan (SMC) için C ara katmanı
-Sources/MacNabiz/
-├── App/         MacNabizApp (giriş), RootView (kenar çubuğu + menü çubuğu)
-├── Monitors/    CPU/Memory/Disk/Process/GPU/Network/Energy/Sensor/Hardware/Bluetooth → SystemMonitor
-├── Services/    Booster, CacheCleaner, DiskAnalyzer, DiskExtras (büyük/yinelenen),
-│                DiskScanner (fts), DiskScanStore, SpaceSaver, AppUninstaller,
-│                LoginItemsService, NotificationManager, Privileged
-├── Views/       Panel, Donanım, İşlemler, Disk, Ağ, Hızlandır, Temizlik, Uygulamalar, Başlangıç, Ayarlar
-└── Utils/       Biçimlendirme & renk eşikleri
+Sources/
+├── CSensors/           Sıcaklık (IOHID) ve fan (SMC) için C katmanı
+└── MacNabiz/
+    ├── App/            Giriş noktası, kenar çubuğu, menü çubuğu
+    ├── Monitors/       CPU, bellek, disk, GPU, ağ, enerji, sensör → SystemMonitor
+    ├── Services/       DiskScanner (fts), DiskScanStore, SpaceSaver, CacheCleaner,
+    │                   AppUninstaller, Booster, LoginItemsService, NotificationManager
+    ├── Views/          Theme (tasarım belirteçleri), Components, sayfalar
+    └── Utils/          Biçimlendirme
 ```
 
-- **CPU:** `host_statistics(HOST_CPU_LOAD_INFO)` tick farkı
-- **RAM:** `host_statistics64(HOST_VM_INFO64)` — aktif+wired+sıkıştırılmış
-- **GPU:** IORegistry `IOAccelerator → PerformanceStatistics → Device Utilization %` (sudo gerekmez)
-- **Ağ:** `getifaddrs` (toplam) + `nettop` (uygulama-bazlı), saniyelik hıza türevlenir
-- **Enerji:** `IOPowerSources` + `AppleSmartBattery` (yüzde, şarj, süre, sağlık, çevrim)
-- **Sıcaklık:** `IOHIDEventSystemClient` termal sensörleri (SoC die ortalaması)
-- **Fan:** `AppleSMC` (`IOConnectCallStructMethod`, `FNum`/`F0Ac`…)
-- **Donanım:** `sysctl` + Metal (`recommendedMaxWorkingSetSize`) + IORegistry (`gpu-core-count`)
-- **İşlemler:** `proc_listpids` + `proc_pidinfo(PROC_PIDTASKINFO)` ile CPU zaman farkı
-- **İkon:** `generate-icon.swift` (CoreGraphics ile çizilen nabız temalı .icns)
+## Lisans
 
-## Güvenlik notu
-
-Silme işlemleri (Temizlik, Kaldırıcı) **her zaman** onay penceresi gösterir ve
-mümkün olduğunda öğeleri **çöp kutusuna taşır** (geri alınabilir).
+[MIT](LICENSE) © 2026 Osman Safa Hattat
