@@ -94,7 +94,7 @@ struct SpaceSaverView: View {
                 .disabled(store.selectedSize == 0 || store.working)
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Theme.surface)
     }
 
     private var summary: some View {

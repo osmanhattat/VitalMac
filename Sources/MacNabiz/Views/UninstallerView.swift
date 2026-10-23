@@ -100,7 +100,7 @@ struct UninstallerView: View {
             }
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Theme.surface)
     }
 
     @ViewBuilder
@@ -142,7 +142,7 @@ struct UninstallerView: View {
                 }
                 .frame(height: 200)
                 .padding(8)
-                .background(Color(nsColor: .underPageBackgroundColor),
+                .background(Theme.inset,
                             in: RoundedRectangle(cornerRadius: 8))
 
                 Text("Seçili \(selectedFiles.count) / \(relatedFiles.count) öğe")

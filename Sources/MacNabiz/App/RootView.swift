@@ -16,6 +16,14 @@ enum SidebarItem: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Kenar çubuğu grupları (sıra = görünüm sırası).
+    static let groups: [(title: String, items: [SidebarItem])] = [
+        ("İzleme", [.dashboard, .hardware, .processes, .network]),
+        ("Depolama", [.disk, .spaceSaver, .cleaner]),
+        ("Bakım", [.boost, .uninstaller, .startup]),
+        ("Uygulama", [.settings]),
+    ]
+
     var icon: String {
         switch self {
         case .dashboard:   return "gauge.with.dots.needle.67percent"
@@ -48,27 +56,51 @@ struct RootView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(SidebarItem.allCases, selection: $selection) { item in
-                Label(item.rawValue, systemImage: item.icon).tag(item)
+            List(selection: $selection) {
+                ForEach(SidebarItem.groups, id: \.title) { group in
+                    Section {
+                        ForEach(group.items) { item in
+                            Label(item.rawValue, systemImage: item.icon).tag(item)
+                        }
+                    } header: {
+                        Eyebrow(group.title, size: 9.5)
+                    }
+                }
             }
-            .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 260)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 260)
             .listStyle(.sidebar)
+            .tint(Theme.pulse)
+            .safeAreaInset(edge: .top) { SidebarBrand() }
             .safeAreaInset(edge: .bottom) {
                 MiniStatusBar().environmentObject(monitor)
             }
         } detail: {
             detailView
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .pageBackground()
         }
         .navigationTitle("MacNabız")
+        #if DEBUG
+        .task {
+            await SnapshotRunner.run(select: { selection = $0 }, render: { item in
+                AnyView((item == .dashboard ? AnyView(DashboardView(scrolls: false)) : AnyView(page(item)))
+                    .environmentObject(monitor).environmentObject(notify))
+            }, sidebar: AnyView(
+                VStack(spacing: 0) { SidebarBrand(); Spacer(); MiniStatusBar() }
+                    .frame(width: 220, height: 400).background(Theme.canvas).environmentObject(monitor)
+            ))
+        }
+        #endif
         .onChange(of: monitor.cpu) { _, _ in
             notify.evaluate(monitor)
         }
     }
 
+    private var detailView: some View { page(selection ?? .dashboard) }
+
     @ViewBuilder
-    private var detailView: some View {
-        switch selection ?? .dashboard {
+    private func page(_ item: SidebarItem) -> some View {
+        switch item {
         case .dashboard:   DashboardView()
         case .hardware:    HardwareView()
         case .processes:   ProcessesView(booster: booster)
@@ -84,29 +116,67 @@ struct RootView: View {
     }
 }
 
+/// Kenar çubuğunun üstündeki marka: işaret + ad + CPU'ya bağlı canlı mini nabız.
+struct SidebarBrand: View {
+    @EnvironmentObject var monitor: SystemMonitor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "waveform.path.ecg")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 26, height: 26)
+                    .background(Theme.pulse, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("MacNabız").font(.system(.headline, design: .rounded))
+                    Eyebrow("\(Int(Pulse.bpm(forCPU: monitor.cpu).rounded())) atış/dk", size: 8.5)
+                }
+                Spacer()
+            }
+            PulseTrace(bpm: Pulse.bpm(forCPU: monitor.cpu), color: Theme.pulse, lineWidth: 1.3, fps: 12)
+                .frame(height: 22)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
+    }
+}
+
 /// Kenar çubuğunun altındaki canlı mini gösterge.
 struct MiniStatusBar: View {
     @EnvironmentObject var monitor: SystemMonitor
 
     var body: some View {
-        VStack(spacing: 6) {
-            Divider()
-            HStack {
-                miniStat("cpu", "\(Int(monitor.cpu.rounded()))%", Fmt.color(for: monitor.cpu))
-                Spacer()
-                miniStat("memorychip", "\(Int(monitor.memory.pressure.rounded()))%", Fmt.color(for: monitor.memory.pressure))
-                Spacer()
-                miniStat("internaldrive", "\(Int(monitor.disk.usedPercent.rounded()))%", Fmt.color(for: monitor.disk.usedPercent))
+        VStack(spacing: 8) {
+            Rectangle().fill(Theme.hairline).frame(height: 1)
+            HStack(spacing: 0) {
+                miniStat("CPU", monitor.cpu, Theme.cpu)
+                miniStat("RAM", monitor.memory.pressure, Theme.memory)
+                miniStat("DİSK", monitor.disk.usedPercent, Theme.disk)
             }
             .padding(.horizontal, 12)
-            .padding(.bottom, 8)
+            .padding(.bottom, 10)
         }
     }
 
-    private func miniStat(_ icon: String, _ value: String, _ color: Color) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon).font(.caption2).foregroundStyle(color)
-            Text(value).font(.caption).monospacedDigit()
+    private func miniStat(_ label: String, _ value: Double, _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Eyebrow(label, size: 8.5)
+            Text("\(Int(value.rounded()))%")
+                .font(.system(.callout, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(value >= 85 ? Theme.alert : Theme.ink)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.inset)
+                    Capsule().fill(color).frame(width: max(2, geo.size.width * min(max(value / 100, 0), 1)))
+                }
+            }
+            .frame(height: 3)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 4)
     }
 }

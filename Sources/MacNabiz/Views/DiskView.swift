@@ -104,7 +104,7 @@ struct DiskView: View {
             .fixedSize()
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Theme.surface)
     }
 
     private var locationName: String {
@@ -276,7 +276,7 @@ struct DiskView: View {
             }
             .padding(.horizontal, 12).padding(.vertical, 6)
         }
-        .background(Color(nsColor: .underPageBackgroundColor))
+        .background(Theme.inset)
     }
 
     // MARK: - En büyük dosyalar
@@ -481,7 +481,7 @@ private struct DuplicateGroupCard: View {
                 .font(.caption2).foregroundStyle(.orange)
         }
         .padding(12)
-        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -491,7 +491,7 @@ struct TreemapView: View {
     var onTap: (DiskEntry) -> Void
 
     @State private var hovered: String?
-    private let palette: [Color] = [.teal, .blue, .indigo, .purple, .pink, .orange, .green, .mint, .cyan]
+    private let palette: [Color] = [Theme.disk, Theme.cpu, Theme.memory, Theme.gpu, Theme.network, Theme.heat]
 
     var body: some View {
         GeometryReader { geo in

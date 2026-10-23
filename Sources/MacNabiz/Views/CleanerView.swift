@@ -80,7 +80,7 @@ struct CleanerView: View {
             if cleaner.cleaning { ProgressView().controlSize(.small) }
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Theme.surface)
     }
 
     private var emptyState: some View {
@@ -169,7 +169,7 @@ private struct CleanTargetCard: View {
             }
         }
         .padding(14)
-        .background(Color(nsColor: .controlBackgroundColor),
+        .background(Theme.surface,
                     in: RoundedRectangle(cornerRadius: 12))
     }
 }

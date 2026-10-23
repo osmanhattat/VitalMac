@@ -35,12 +35,8 @@ enum Fmt {
         return h > 0 ? "\(h)sa \(m)dk" : "\(m)dk"
     }
 
-    /// 0–100 yüzdesine göre durum rengi (yeşil → sarı → kırmızı).
+    /// 0–100 yüzdesine göre durum rengi (yeşil → sarı → kırmızı), tema paletinden.
     static func color(for percent: Double) -> Color {
-        switch percent {
-        case ..<60:  return .green
-        case ..<85:  return .orange
-        default:     return .red
-        }
+        Theme.status(percent)
     }
 }

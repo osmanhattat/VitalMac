@@ -95,7 +95,7 @@ struct ProcessesView: View {
                 .font(.caption).foregroundStyle(.secondary)
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Theme.surface)
     }
 
     private var footer: some View {
@@ -127,6 +127,6 @@ struct ProcessesView: View {
             .disabled(selectedProc == nil)
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .background(Theme.surface)
     }
 }

@@ -3,81 +3,113 @@ import Charts
 
 // MARK: - Ortak yüzey stili
 
-/// Kartlara uygulanan ortak yüzey: sürekli köşe + ince kenarlık + yumuşak gölge.
+/// Kartlara uygulanan ortak yüzey: sakin zemin + ince kenar. Gölge yok (monitör camı gibi düz).
 /// (Statik; animasyon yok — CPU tavanı sorununu tetiklemez.)
 struct CardSurface: ViewModifier {
-    var cornerRadius: CGFloat = 18
+    var cornerRadius: CGFloat = Theme.radius
 
     func body(content: Content) -> some View {
         content
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .fill(Theme.surface)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
+                    .strokeBorder(Theme.hairline, lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.10), radius: 10, x: 0, y: 4)
     }
 }
 
 extension View {
-    func cardSurface(cornerRadius: CGFloat = 18) -> some View {
+    func cardSurface(cornerRadius: CGFloat = Theme.radius) -> some View {
         modifier(CardSurface(cornerRadius: cornerRadius))
     }
 }
 
-/// Yüzde gösteren dairesel halka göstergesi.
-struct RingGauge: View {
-    var value: Double          // 0–100
+/// Monitör kanalı: etiket, büyük okuma, alt bilgi ve mini geçmiş çizgisi.
+struct VitalChannel: View {
     var label: String
+    var value: Double              // 0–100
+    var unit: String = "%"
+    var detail: String
     var color: Color
-    var subtitle: String = ""
-
-    private var clamped: Double { min(max(value / 100, 0), 1) }
+    var history: [Double] = []
 
     var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .stroke(color.opacity(0.14), lineWidth: 11)
-                Circle()
-                    .trim(from: 0, to: clamped)
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [color.opacity(0.55), color]),
-                            center: .center
-                        ),
-                        style: StrokeStyle(lineWidth: 11, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-                    .shadow(color: color.opacity(0.35), radius: 4)
-                VStack(spacing: -1) {
-                    Text("\(Int(value.rounded()))")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(color)
-                    Text("%").font(.caption2).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Circle().fill(color).frame(width: 6, height: 6)
+                Eyebrow(label)
+                Spacer(minLength: 0)
+                if value >= 85 {
+                    Eyebrow("yüksek", color: Theme.alert, size: 9)
                 }
             }
-            .frame(width: 120, height: 120)
-
-            VStack(spacing: 2) {
-                Text(label)
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(Int(value.rounded()))")
+                    .font(Theme.readout(40))
+                    .monospacedDigit()
+                    .foregroundStyle(color)
+                    .contentTransition(.numericText())
+                Text(unit)
+                    .font(Theme.readout(16))
+                    .foregroundStyle(color.opacity(0.7))
+            }
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(Theme.muted)
+                .lineLimit(1)
+            if history.isEmpty {
+                // Geçmişi olmayan kanal (disk) doluluk çubuğu gösterir.
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Theme.inset)
+                        Capsule().fill(color).frame(width: max(3, geo.size.width * min(max(value / 100, 0), 1)))
+                    }
                 }
+                .frame(height: 6)
+                .padding(.vertical, 10)
+            } else {
+                MiniTrace(data: history, color: color)
+                    .frame(height: 26)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .cardSurface()
+        .padding(.vertical, 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Eksensiz, hafif mini geçmiş çizgisi (0–100).
+struct MiniTrace: View {
+    var data: [Double]
+    var color: Color
+
+    var body: some View {
+        Canvas { ctx, size in
+            let points = data.suffix(60)
+            guard points.count > 1 else {
+                var base = Path()
+                base.move(to: CGPoint(x: 0, y: size.height - 1))
+                base.addLine(to: CGPoint(x: size.width, y: size.height - 1))
+                ctx.stroke(base, with: .color(color.opacity(0.2)), lineWidth: 1)
+                return
+            }
+            let dx = size.width / CGFloat(points.count - 1)
+            var line = Path()
+            for (i, v) in points.enumerated() {
+                let p = CGPoint(x: CGFloat(i) * dx,
+                                y: size.height - CGFloat(min(max(v, 0), 100) / 100) * (size.height - 2) - 1)
+                if i == 0 { line.move(to: p) } else { line.addLine(to: p) }
+            }
+            var area = line
+            area.addLine(to: CGPoint(x: size.width, y: size.height))
+            area.addLine(to: CGPoint(x: 0, y: size.height))
+            area.closeSubpath()
+            ctx.fill(area, with: .linearGradient(Gradient(colors: [color.opacity(0.22), color.opacity(0)]),
+                                                 startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
+            ctx.stroke(line, with: .color(color), style: StrokeStyle(lineWidth: 1.4, lineJoin: .round))
+        }
     }
 }
 
@@ -91,25 +123,22 @@ struct Card<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 9) {
+            HStack(spacing: 8) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(tint)
-                        .frame(width: 26, height: 26)
-                        .background(
-                            tint.opacity(0.16),
-                            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        )
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(tint == .secondary ? Theme.muted : tint)
+                        .frame(width: 14)
                 }
-                Text(title).font(.system(.headline, design: .rounded))
+                Eyebrow(title, color: Theme.muted, size: 10.5)
                 Spacer()
                 if let accessory { accessory }
             }
             content()
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        // Yan yana kartlar (fixedSize'lı HStack içinde) eşit yükseklikte durur.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cardSurface()
     }
 }
@@ -179,56 +208,45 @@ struct ProportionRow: View {
     var color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(title).lineLimit(1)
+                Text(title).lineLimit(1).foregroundStyle(Theme.ink)
                 Spacer()
-                Text(detail).foregroundStyle(.secondary).monospacedDigit()
+                Text(detail).foregroundStyle(Theme.muted).monospacedDigit()
             }
             .font(.callout)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(color.opacity(0.12))
+                    Capsule().fill(Theme.inset)
                     Capsule()
-                        .fill(
-                            LinearGradient(colors: [color.opacity(0.7), color],
-                                           startPoint: .leading, endPoint: .trailing)
-                        )
-                        .frame(width: max(4, geo.size.width * min(max(fraction, 0), 1)))
+                        .fill(color)
+                        .frame(width: max(3, geo.size.width * min(max(fraction, 0), 1)))
                 }
             }
-            .frame(height: 7)
+            .frame(height: 5)
         }
     }
 }
 
-/// İstatistik rozeti (küçük etiket + değer).
+/// İstatistik rozeti: küçük mono etiket + değer (monitör okuması).
 struct StatBadge: View {
     var label: String
     var value: String
     var color: Color = .secondary
 
     var body: some View {
-        VStack(spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
+            Eyebrow(label, size: 9)
             Text(value)
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                .font(.system(.title3, design: .rounded).weight(.semibold))
                 .monospacedDigit()
-                .foregroundStyle(color)
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+                .foregroundStyle(color == .secondary ? Theme.ink : color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 9)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(Color(nsColor: .underPageBackgroundColor))
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(color.opacity(0.12))
-            }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 11, style: .continuous)
-                .strokeBorder(color.opacity(0.12), lineWidth: 1)
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Theme.inset, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 }
